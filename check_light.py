@@ -6,21 +6,30 @@ import md5
 import os
 import sys
 import time
-from termcolor import colored
 import xmlrpclib
 import threading
 import curses
+from random import randint as random
 
-version = '0.2.1'
+version = '0.2.2'
+slogans = [
+  'check_light> Threaded for your enjoyment. (thread responsibly)',
+  'check_light> Lighting the way for operations everywhere',
+  'check_light> RED tested, GREEN approved',
+  'check_light> Watching your servers, so you don\'t have to',
+  'check_light> Listen to noagendashow.com ;)',
+  'check_light> Ever wonder why green went red?  So do I.',
+  'check_light> Always in need of better slogans ^_^',
+]
 motd    = '''
 Check Light Version %s
 -----------------------
 Written By: Steven McGrath
-     Build: 045
-      Date: 2010-11-22
+     Build: 046
+      Date: 2010-12-07
 
-check_light> Threaded for your enjoyment. (thread responsibly)
-''' % version
+%s
+''' % (version, slogans[random(0,len(slogans)-1)])
 
 def auth(con):
   config    = get_config()
