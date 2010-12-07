@@ -14,6 +14,10 @@ class Resources(object):
     self.salt = salt
 
   def get_num_cores(self, auth):
+    '''
+    get_num_cores(auth)
+    returns the number of cpu cores the system has
+    '''
     if self._valid_auth(auth):
       cores = 0
       for line in open('/proc/cpuinfo'):
@@ -22,6 +26,10 @@ class Resources(object):
       return cores
   
   def get_core_info(self, auth, cpu_id):
+    '''
+    get_core_info(auth, core_id)
+    returns statistics on an individual cpu core
+    '''
     if self._valid_auth(auth):    
       result  = cmd.getoutput('sar -P %s' % cpu_id)
       avg     = result.split('\n')[-1].split()
@@ -35,6 +43,10 @@ class Resources(object):
       }
   
   def get_mem_info(self, auth):
+    '''
+    get_mem_info(auth)
+    returns memory statistics
+    '''
     if self._valid_auth(auth):    
       results = {}
       for line in open('/proc/meminfo'):
@@ -43,23 +55,38 @@ class Resources(object):
       return results
   
   def get_disk_info(self, auth):
+    '''
+    get_disk_info(auth)
+    returns information on all disks attached to the server
+    '''
     if self._valid_auth(auth):
       results = cmd.getoutput('df').split('\n')
       results.pop(0)
       values = []
+      fsystem = None
       for line in results:
         dset = line.split()
-        values.append({
-          'filesystem': dset[0],
-                'size': int(dset[1]),
-                'used': int(dset[2]),
-           'available': int(dset[3]),
-        'percent_used': int(dset[4].strip('%')),
-         'mount_point': dset[5],
-        })
+        if len(dset) < 5:
+          fsystem = dset[0]
+        else:
+          if fsystem is not None:
+            dset.insert(0,fsystem)
+            fsystem = None
+          values.append({
+            'filesystem': dset[0],
+                  'size': int(dset[1]),
+                  'used': int(dset[2]),
+             'available': int(dset[3]),
+          'percent_used': int(dset[4].strip('%')),
+           'mount_point': dset[5],
+          })
       return values
   
   def get_load(self, auth):
+    '''
+    get_load(auth)
+    returns the load averages
+    '''
     if self._valid_auth(auth):
       results = cmd.getoutput('uptime')
       uptime  = results.split('load average:')[1].split(',')
@@ -69,6 +96,13 @@ class Resources(object):
       return {'1min': min_1, '5min': min_5, '15min': min_15}
   
   def started_service(self, auth, name):
+    '''
+    started_service(auth, service_name)
+    returns true if the service is running, false if it is not.
+    
+    NOTE: if the service does not return with "running" in the status text,
+          this will always return false.
+    '''
     if self._valid_auth(auth):
       result = cmd.getoutput('/etc/init.d/%s status' % name)
       if result.find('running') > -1:
@@ -77,6 +111,11 @@ class Resources(object):
         return False
   
   def running_process(self, auth, name):
+    '''
+    running_process(auth, process_name)
+    returns a dictionary with process information. the "running" key in the
+    dictionary will show True if the process is running, false if it is not.
+    '''
     if self._valid_auth(auth):
       result = cmd.getoutput('ps aux')
       values = {'running': False}
@@ -137,7 +176,7 @@ def daemonize():
     if pid > 0:
       # exit from second parent, print eventual PID before
       #print "Daemon PID %d" % pid
-      open(pid_file, 'w').write('%d' % pid)
+      open(pidfile, 'w').write('%d' % pid)
       sys.exit(0) 
   except OSError, e: 
     print >>sys.stderr, "fork #2 failed: %d (%s)" % (e.errno, e.strerror) 
@@ -161,9 +200,4 @@ def main():
   server.serve_forever()
 
 if __name__ == '__main__':
-  if not os.path.exists('/etc/init.d/service_light'):
-    init = open('/etc/init.d/service_light', 'w')
-    init.write(init_script)
-    init.close()
-    os.chmod(0755,'/etc/init.d/service_light')
   sys.exit(main())
