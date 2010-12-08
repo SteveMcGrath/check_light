@@ -193,7 +193,10 @@ def main():
   salt    = config.get('Settings', 'salt')
   port    = config.getint('Settings', 'port')
   address = config.get('Settings', 'address')
-  server  = SimpleXMLRPCServer((address, port), requestHandler=RequestHandler)
+  server  = SimpleXMLRPCServer((address, port), 
+                               requestHandler=RequestHandler,
+                               logRequests=False,
+                               allow_none=True)
   server.register_introspection_functions()
   server.register_instance(Resources(salt))
   daemonize()
