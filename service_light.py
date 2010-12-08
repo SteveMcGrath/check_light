@@ -195,8 +195,7 @@ def main():
   address = config.get('Settings', 'address')
   server  = SimpleXMLRPCServer((address, port), 
                                requestHandler=RequestHandler,
-                               logRequests=False,
-                               allow_none=True)
+                               logRequests=False)
   server.register_introspection_functions()
   server.register_instance(Resources(salt))
   daemonize()
